@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-var targetString = "0000000f00000000000000000000000000000000000000000000000000000000"
+var targetString = "000000f000000000000000000000000000000000000000000000000000000000"
 var target []byte
 
 func init() {
@@ -18,14 +18,22 @@ func init() {
 	}
 }
 
-func startMining(data string) {
+func startMining(data string, stop chan bool) {
 	for i := int64(0); ; i++ {
 		currentString := fmt.Sprintf("%s%d", data, i)
 		hash := sha256.Sum256([]byte(currentString))
 		if bytes.Compare(hash[:], target[:]) == -1 {
 			result.Status = "found"
 			result.Nonce = i
+			close(stop)
 			return
+		}
+		select {
+		case <-stop:
+			fmt.Println("Stopped after trying", i, "values")
+			return
+		default:
+			continue
 		}
 	}
 }

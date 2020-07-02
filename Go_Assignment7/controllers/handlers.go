@@ -13,10 +13,8 @@ type resultType struct {
 	Nonce  int64  `json:"nonce"`
 }
 
-var result = resultType{
-	Status: "searching",
-	Nonce:  -1,
-}
+var result resultType
+var stopChannel chan bool
 
 func pingHandler(c *gin.Context) {
 	c.JSON(200, gin.H{
@@ -31,10 +29,24 @@ func startHandler(c *gin.Context) {
 		_ = c.AbortWithError(400, err)
 		return
 	}
-	go startMining(request.Data)
+
+	stopChannel = make(chan bool)
+	result = resultType{
+		Status: "searching",
+		Nonce:  -1,
+	}
+
+	go startMining(request.Data, stopChannel)
+
 	c.Status(200)
 }
 
 func resultHandler(c *gin.Context) {
 	c.JSON(200, result)
+}
+
+func stopHandler(c *gin.Context) {
+	close(stopChannel)
+	result.Status = "stopped"
+	c.Status(200)
 }
