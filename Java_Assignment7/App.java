@@ -96,8 +96,8 @@ public class App {
         @Override
         public void handle(HttpExchange t) throws IOException {
             String response = "PONG";
-            t.sendResponseHeaders(200, 0);
-            t.getResponseBody().close();
+            t.sendResponseHeaders(200, response.length());
+            OutputStream os = t.getResponseBody();
             os.write(response.getBytes());
             os.close();
         }
